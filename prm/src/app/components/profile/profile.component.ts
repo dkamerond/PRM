@@ -8,31 +8,44 @@ import { FormsModule } from '@angular/forms';
   imports: [CommonModule, FormsModule],
   template: `
     <div class="profile-container">
-      <h2>Profile Setup</h2>
-      <div class="profile-form">
-        <div class="form-group">
-          <label for="displayName">Display Name:</label>
-          <input 
-            type="text" 
-            id="displayName" 
-            [(ngModel)]="displayName" 
-            placeholder="Enter your display name"
-          >
+      @if (!profileSaved) {
+        <div class="profile-setup">
+          <h2>Profile Setup</h2>
+          <div class="profile-form">
+            <div class="form-group">
+              <label for="displayName">Display Name:</label>
+              <input 
+                type="text" 
+                id="displayName" 
+                [(ngModel)]="displayName" 
+                placeholder="Enter your display name"
+              >
+            </div>
+            <div class="form-group">
+              <label for="profileImage">Profile Image:</label>
+              <input 
+                type="file" 
+                id="profileImage" 
+                (change)="onImageSelected($event)"
+                accept="image/*"
+              >
+            </div>
+            <div class="image-preview" *ngIf="imagePreview">
+              <img [src]="imagePreview" alt="Profile preview">
+            </div>
+            <button (click)="saveProfile()" [disabled]="!displayName || !imagePreview">
+              Save Profile
+            </button>
+          </div>
         </div>
-        <div class="form-group">
-          <label for="profileImage">Profile Image:</label>
-          <input 
-            type="file" 
-            id="profileImage" 
-            (change)="onImageSelected($event)"
-            accept="image/*"
-          >
+      } @else {
+        <div class="profile-view">
+          <div class="profile-image">
+            <img [src]="imagePreview" alt="Profile picture">
+          </div>
+          <h2 class="profile-name">{{ displayName }}</h2>
         </div>
-        <div class="image-preview" *ngIf="imagePreview">
-          <img [src]="imagePreview" alt="Profile preview">
-        </div>
-        <button (click)="saveProfile()">Save Profile</button>
-      </div>
+      }
     </div>
   `,
   styles: [`
@@ -73,8 +86,32 @@ import { FormsModule } from '@angular/forms';
       border-radius: 4px;
       cursor: pointer;
     }
-    button:hover {
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    button:hover:not(:disabled) {
       background-color: #1565c0;
+    }
+    .profile-view {
+      text-align: center;
+    }
+    .profile-image {
+      width: 200px;
+      height: 200px;
+      margin: 0 auto 1rem;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+    .profile-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .profile-name {
+      margin: 0;
+      color: #333;
+      font-size: 1.5rem;
     }
   `]
 })
@@ -82,6 +119,7 @@ export class ProfileComponent {
   displayName: string = '';
   imagePreview: string | null = null;
   selectedFile: File | null = null;
+  profileSaved: boolean = false;
 
   onImageSelected(event: any) {
     const file = event.target.files[0];
@@ -96,10 +134,13 @@ export class ProfileComponent {
   }
 
   saveProfile() {
-    // TODO: Implement save to database
-    console.log('Saving profile:', {
-      displayName: this.displayName,
-      image: this.selectedFile
-    });
+    if (this.displayName && this.imagePreview) {
+      this.profileSaved = true;
+      // TODO: Implement save to database
+      console.log('Profile saved:', {
+        displayName: this.displayName,
+        image: this.selectedFile
+      });
+    }
   }
 }
